@@ -51,9 +51,30 @@ app.use(function (req, res, next) {
   next(err);
 });
 
-// development error handler
+// Development error handler
 // will print stacktrace
-if (ServerConfig.isDevelopment()) {
+if (ServerConfig.isProduction()) {
+  // no stacktrace leaked to user
+  app.use(function (
+    err: { status: any; message: any },
+    req: any,
+    res: {
+      status: (arg0: any) => void;
+      json: (arg0: { errors: { message: any; error: {} } }) => void;
+    },
+    next: any
+  ) {
+    res.status(err.status || 500);
+    res.json({
+      errors: {
+        message: err.message,
+        error: {},
+      },
+    });
+  });
+}
+// Production error handler
+else {
   app.use(function (
     err: { stack: any; status: any; message: any },
     req: any,
@@ -76,29 +97,8 @@ if (ServerConfig.isDevelopment()) {
   });
 }
 
-// production error handler
-// no stacktrace leaked to user
-app.use(function (
-  err: { status: any; message: any },
-  req: any,
-  res: {
-    status: (arg0: any) => void;
-    json: (arg0: { errors: { message: any; error: {} } }) => void;
-  },
-  next: any
-) {
-  res.status(err.status || 500);
-  res.json({
-    errors: {
-      message: err.message,
-      error: {},
-    },
-  });
-});
-
 // Start Server
 const serverPort = 4000;
-
 app.listen(serverPort, function () {
   console.log("Listening on port " + serverPort);
 });
